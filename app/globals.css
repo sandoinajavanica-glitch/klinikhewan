@@ -19,7 +19,6 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  overflow-x: hidden;
   width: 100%;
 }
 
@@ -54,7 +53,7 @@ a { color: inherit; text-decoration: none; }
 .sidebar-user { border-top: 1px solid var(--border); padding: 14px; display: flex; align-items: center; gap: 8px; }
 .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--green-light); color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
 
-.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; }
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; overflow-x: hidden; }
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 0; z-index: 30; }
 .topbar h2 { margin: 0; font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .content { flex: 1; padding: 24px; min-width: 0; max-width: 100vw; }
