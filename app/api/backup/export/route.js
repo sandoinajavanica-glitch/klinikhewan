@@ -19,7 +19,7 @@ export async function GET() {
 
     const now = new Date();
     let out = "";
-    out += `-- Backup data Garnet Vet Clinic\n`;
+    out += `-- Backup data Lareangon\n`;
     out += `-- Dibuat pada: ${now.toISOString()}\n`;
     out += `-- Total baris: ${rows.length}\n\n`;
     out += `CREATE TABLE IF NOT EXISTS items (\n`;

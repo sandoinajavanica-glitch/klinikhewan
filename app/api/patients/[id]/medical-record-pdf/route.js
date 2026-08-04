@@ -63,7 +63,7 @@ export async function GET(req, { params }) {
     const endPromise = new Promise((resolve) => doc.on("end", resolve));
 
     // Header
-    doc.fontSize(18).font("Helvetica-Bold").fillColor("#059669").text("Garnet Vet Clinic", { continued: false });
+    doc.fontSize(18).font("Helvetica-Bold").fillColor("#059669").text("Lareangon", { continued: false });
     doc.fontSize(13).font("Helvetica-Bold").fillColor("#111827").text("Rekam Medis Pasien");
     doc.fontSize(9).font("Helvetica").fillColor("#9ca3af").text(`Dicetak: ${new Date().toLocaleString("id-ID")}`);
     doc.moveDown(1);

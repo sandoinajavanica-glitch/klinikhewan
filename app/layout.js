@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Garnet Vet Clinic",
+  title: "Lareangon",
   description: "Aplikasi internal manajemen klinik hewan",
 };
 

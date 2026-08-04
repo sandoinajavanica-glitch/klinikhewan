@@ -39,7 +39,7 @@ export default function LoginPage() {
             <PawPrint size={17} color="#fff" />
           </div>
           <div>
-            <div className="brand-name">Garnet Vet Clinic</div>
+            <div className="brand-name">Lareangon</div>
             <div className="brand-sub">Portal Staf Klinik</div>
           </div>
         </div>

@@ -21,7 +21,7 @@ export async function POST(req) {
   const text = await file.text();
   if (!text.includes("CREATE TABLE") || !text.includes("items")) {
     return NextResponse.json(
-      { error: "File tidak dikenali sebagai backup Garnet Vet Clinic yang valid." },
+      { error: "File tidak dikenali sebagai backup Lareangon yang valid." },
       { status: 400 }
     );
   }

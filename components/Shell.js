@@ -54,7 +54,7 @@ export default function Shell({ session, children }) {
       <div className={"sidebar" + (mobileOpen ? " open" : "")}>
         <div className="sidebar-logo">
           <span className="mark"><PawPrint size={15} color="#fff" /></span>
-          Garnet Vet Clinic
+          Lareangon
           <button className="btn-icon sidebar-close-btn" onClick={() => setMobileOpen(false)}><X size={18} /></button>
         </div>
         <div className="sidebar-nav">

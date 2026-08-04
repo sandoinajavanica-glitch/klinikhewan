@@ -1,4 +1,4 @@
-# Garnet Vet Clinic — Aplikasi Internal Klinik Hewan
+# Lareangon — Aplikasi Internal Klinik Hewan
 
 Aplikasi Next.js untuk manajemen operasional klinik hewan (internal staf saja):
 pasien, pemilik, jadwal/antrian, rekam medis, keuangan, inventaris obat,
@@ -36,7 +36,7 @@ Buka `http://localhost:3000`.
 cd draftklinik-next
 git init
 git add .
-git commit -m "Initial commit: Garnet Vet Clinic"
+git commit -m "Initial commit: Lareangon"
 ```
 
 Lalu buat repo baru (kosong, tanpa README) di https://github.com/new,
