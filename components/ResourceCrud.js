@@ -94,9 +94,9 @@ export default function ResourceCrud({
   return (
     <div>
       {error && <div className="alert-error"><AlertTriangle size={14} /> {error}</div>}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
-        <input className="input" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div style={{ display: "flex", gap: 8 }}>
+      <div className="crud-toolbar" style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
+        <input className="input crud-search" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="crud-toolbar-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {extraTop}
           {canWrite && <PrimaryBtn onClick={openAdd}><Plus size={15} /> {addLabel || `Tambah ${title}`}</PrimaryBtn>}
         </div>
