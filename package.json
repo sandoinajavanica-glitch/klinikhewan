@@ -1,35 +1,21 @@
 {
-  "name": "q29vdm",
+  "name": "draftklinik-next",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "react-scripts start",
-    "build": "turbo build",
-    "test": "turbo test",
-    "eject": "react-scripts eject",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "type-check": "turbo type-check",
-    "db:push": "pnpm --filter @openpims/db db:push",
-    "db:generate": "pnpm --filter @openpims/db db:generate",
-    "db:migrate": "pnpm --filter @openpims/db db:migrate",
-    "db:seed": "pnpm --filter @openpims/db db:seed",
-    "db:reset": "pnpm --filter @openpims/db db:reset",
-    "db:rls": "pnpm --filter @openpims/db db:rls",
-    "db:studio": "pnpm --filter @openpims/db db:studio",
-    "clean": "turbo clean",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
-  "devDependencies": {
-    "react-scripts": "1.0.0",
-    "@playwright/test": "^1.58.2",
-    "turbo": "^2.3.0"
-  },
-  "packageManager": "pnpm@9.15.0",
-  "engines": {
-    "node": ">=20"
-  },
-  "description": null,
-  "version": "0.0.0",
-  "dependencies": {}
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recharts": "2.12.7",
+    "lucide-react": "0.383.0",
+    "postgres": "3.4.4",
+    "@vercel/blob": "0.27.1",
+    "bcryptjs": "2.4.3",
+    "pdfkit": "0.15.0"
+  }
 }
