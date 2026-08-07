@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, FileText, Syringe, FlaskConical, Scissors, Download, AlertTriangle, BedDouble, ClipboardList } from "lucide-react";
+import { Search, FileText, Syringe, FlaskConical, Scissors, Download, BedDouble, ClipboardList } from "lucide-react";
 import { Card } from "@/components/ui";
+import { useToast } from "@/components/Toast";
 import MedicalRecordSection from "@/components/MedicalRecordSection";
 import { apiGet } from "@/lib/apiClient";
 import { fmtDate } from "@/lib/constants";
@@ -19,9 +20,10 @@ const TABS = [
 
 export default function RekamMedisPage() {
   const session = useSession();
+  const toast = useToast();
   const canWrite = session && ["Admin", "Dokter"].includes(session.role);
   const canWriteLab = session && ["Admin", "Dokter", "Paramedis"].includes(session.role);
-  const canWriteCareLog = session && ["Admin", "Dokter", "Groomer"].includes(session.role);
+  const canWriteCareLog = session && ["Admin", "Dokter"].includes(session.role);
 
   const [patients, setPatients] = useState([]);
   const [owners, setOwners] = useState([]);
@@ -31,11 +33,9 @@ export default function RekamMedisPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("medicalNotes");
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfError, setPdfError] = useState("");
 
   async function handleDownloadPdf(patient) {
     setPdfLoading(true);
-    setPdfError("");
     try {
       const res = await fetch(`/api/patients/${patient.id}/medical-record-pdf`);
       if (!res.ok) {
@@ -54,8 +54,9 @@ export default function RekamMedisPage() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      toast.success("PDF rekam medis berhasil diunduh.");
     } catch (e) {
-      setPdfError(e.message);
+      toast.error(e.message);
     } finally {
       setPdfLoading(false);
     }
@@ -118,7 +119,6 @@ export default function RekamMedisPage() {
 
   return (
     <div>
-      {pdfError && <div className="alert-error" style={{ marginBottom: 12 }}><AlertTriangle size={14} /> {pdfError}</div>}
       <Card style={{ padding: "14px 18px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
         <div style={{ fontSize: 13.5 }}>
           <strong>{selectedPatient.name}</strong>
@@ -162,6 +162,8 @@ export default function RekamMedisPage() {
           fields={[
             { name: "date", label: "Tanggal Pemeriksaan", type: "date", required: true },
             { name: "anamnesis", label: "Anamnesa", type: "textarea" },
+            { name: "weight", label: "Berat Badan (kg)", type: "number", placeholder: "mis. 5.4" },
+            { name: "temperature", label: "Suhu (°C)", type: "number", placeholder: "mis. 38.5" },
             { name: "examination", label: "Hasil Pemeriksaan", type: "textarea" },
             { name: "diagnosis", label: "Diagnosa", type: "textarea" },
             { name: "therapy", label: "Terapi", type: "textarea" },
@@ -169,6 +171,8 @@ export default function RekamMedisPage() {
           columns={[
             { key: "date", label: "Tanggal", render: (r) => fmtDate(r.date) },
             { key: "anamnesis", label: "Anamnesa" },
+            { key: "weight", label: "Berat Badan", render: (r) => (r.weight ? `${r.weight} kg` : "-") },
+            { key: "temperature", label: "Suhu", render: (r) => (r.temperature ? `${r.temperature} °C` : "-") },
             { key: "examination", label: "Hasil Pemeriksaan" },
             { key: "diagnosis", label: "Diagnosa" },
             { key: "therapy", label: "Terapi" },
@@ -207,7 +211,7 @@ export default function RekamMedisPage() {
           emptyText="Belum ada catatan rawat inap."
           fields={[
             { name: "date", label: "Tanggal", type: "date", required: true },
-            { name: "period", label: "Waktu", type: "select", required: true, options: [{ value: "Pagi", label: "Pagi" }, { value: "Sore", label: "Sore" }], placeholder: "- Pilih waktu -" },
+            { name: "period", label: "Waktu", type: "select", required: true, options: [{ value: "Pagi", label: "Pagi" }, { value: "Siang", label: "Siang" }, { value: "Sore", label: "Sore" }, { value: "Malam", label: "Malam" }], placeholder: "- Pilih waktu -" },
             { name: "description", label: "Deskripsi", type: "textarea" },
             { name: "treatment", label: "Tindakan Pengobatan", type: "textarea" },
           ]}

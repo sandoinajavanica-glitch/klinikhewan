@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard, PawPrint, Users, Calendar, FileText, DollarSign,
   Package, Columns3, BarChart2, Settings, LogOut, Menu, X,
@@ -53,7 +54,9 @@ export default function Shell({ session, children }) {
 
       <div className={"sidebar" + (mobileOpen ? " open" : "")}>
         <div className="sidebar-logo">
-          <span className="mark"><PawPrint size={15} color="#fff" /></span>
+          <span className="mark">
+            <Image src="/logo-mark.png" alt="Lareangon" width={30} height={30} priority />
+          </span>
           Lareangon
           <button className="btn-icon sidebar-close-btn" onClick={() => setMobileOpen(false)}><X size={18} /></button>
         </div>
@@ -74,7 +77,14 @@ export default function Shell({ session, children }) {
         <div className="sidebar-user">
           <div className="avatar">{initials}</div>
           <div style={{ lineHeight: 1.2, flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{session.name}</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>
+              {session.name}
+              {session.isDemo && (
+                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: "#059669", background: "#05966922", padding: "1px 6px", borderRadius: 999 }}>
+                  DEMO
+                </span>
+              )}
+            </div>
             <div style={{ fontSize: 11.5, color: "#9ca3af" }}>{session.role}</div>
           </div>
           <button className="btn-icon" title="Keluar" onClick={logout}><LogOut size={16} /></button>

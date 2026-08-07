@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ResourceCrud from "@/components/ResourceCrud";
-import { SPECIES } from "@/lib/constants";
+import { SPECIES, dobToAgeLabel, fmtDate } from "@/lib/constants";
 import { apiGet } from "@/lib/apiClient";
 
 export default function PasienPage() {
@@ -21,8 +21,7 @@ export default function PasienPage() {
     { name: "name", label: "Nama Hewan", required: true, placeholder: "mis. Milo" },
     { name: "species", label: "Jenis", type: "select", options: SPECIES.map((s) => ({ value: s, label: s })), required: true, default: SPECIES[0] },
     { name: "breed", label: "Ras", placeholder: "mis. Golden Retriever" },
-    { name: "age", label: "Umur", placeholder: "mis. 2 tahun" },
-    { name: "weight", label: "Berat", placeholder: "mis. 5 kg" },
+    { name: "age", dobName: "birthDate", type: "age-dob", label: "Umur (tahun)", dobLabel: "Tanggal Lahir", placeholder: "mis. 2" },
     { name: "ownerId", label: "Pemilik & Kontak", type: "search-select", options: ownerOptions, placeholder: "Cari nama pemilik...", required: true },
   ];
 
@@ -30,8 +29,8 @@ export default function PasienPage() {
     { key: "name", label: "Nama" },
     { key: "species", label: "Jenis" },
     { key: "breed", label: "Ras" },
-    { key: "age", label: "Umur" },
-    { key: "weight", label: "Berat" },
+    { key: "age", label: "Umur", render: (r) => dobToAgeLabel(r.birthDate) || (r.age ? `${r.age} thn` : "-") },
+    { key: "birthDate", label: "Tanggal Lahir", render: (r) => fmtDate(r.birthDate) },
     { key: "owner", label: "Pemilik", render: (r) => owners.find((o) => o.id === r.ownerId)?.name || "-" },
     { key: "contact", label: "Kontak", render: (r) => owners.find((o) => o.id === r.ownerId)?.phone || "-" },
   ];

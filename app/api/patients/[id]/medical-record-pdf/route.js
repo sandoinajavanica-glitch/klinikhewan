@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { getOne, getAll } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { fmtDate } from "@/lib/constants";
+import { fmtDate, dobToAgeLabel } from "@/lib/constants";
 
 function section(doc, title, entries, fieldDefs) {
   doc.moveDown(1.2);
@@ -21,7 +21,8 @@ function section(doc, title, entries, fieldDefs) {
     fieldDefs.forEach((fd) => {
       const val = e[fd.key];
       if (val) {
-        doc.fontSize(10).font("Helvetica").fillColor("#374151").text(`${fd.label}: ${val}`, { indent: 10 });
+        const shown = fd.format ? fd.format(val) : val;
+        doc.fontSize(10).font("Helvetica").fillColor("#374151").text(`${fd.label}: ${shown}`, { indent: 10 });
       }
     });
     doc.moveDown(0.6);
@@ -74,12 +75,14 @@ export async function GET(req, { params }) {
     doc.fontSize(12).font("Helvetica-Bold").fillColor("#111827").text(patient.name || "-");
     doc.fontSize(10).font("Helvetica").fillColor("#374151");
     doc.text(`Jenis: ${patient.species || "-"}   Ras: ${patient.breed || "-"}`);
-    doc.text(`Umur: ${patient.age || "-"}   Berat: ${patient.weight || "-"}`);
+    doc.text(`Umur: ${dobToAgeLabel(patient.birthDate) || patient.age || "-"}   Tanggal Lahir: ${patient.birthDate ? fmtDate(patient.birthDate) : "-"}`);
     doc.text(`Pemilik: ${owner ? owner.name : "-"}   Telepon: ${owner ? owner.phone || "-" : "-"}`);
     if (owner && owner.address) doc.text(`Alamat: ${owner.address}`);
 
     section(doc, "Catatan Medis", notesForPatient, [
       { key: "anamnesis", label: "Anamnesa" },
+      { key: "weight", label: "Berat Badan", format: (v) => `${v} kg` },
+      { key: "temperature", label: "Suhu", format: (v) => `${v} °C` },
       { key: "examination", label: "Hasil Pemeriksaan" },
       { key: "diagnosis", label: "Diagnosa" },
       { key: "therapy", label: "Terapi" },

@@ -10,11 +10,16 @@ const TABS = [
   { key: "backup", label: "Backup Data", icon: Database },
 ];
 
-export default function PengaturanTabs() {
+export default function PengaturanTabs({ isDemo }) {
   const [tab, setTab] = useState("staff");
 
   return (
     <div>
+      {isDemo && (
+        <div className="alert-error" style={{ marginBottom: 14 }}>
+          Ini akun demo — perubahan pengaturan (kelola staf & backup/restore data) dinonaktifkan.
+        </div>
+      )}
       <div style={{ display: "flex", gap: 4, borderBottom: "1px solid #e5e7eb", marginBottom: 18, flexWrap: "wrap" }}>
         {TABS.map((t) => {
           const Icon = t.icon;
@@ -38,13 +43,13 @@ export default function PengaturanTabs() {
       {tab === "staff" && (
         <div>
           <div style={{ fontSize: 11.5, color: "#9ca3af", marginBottom: 14 }}>
-            Peran menentukan hak akses: Admin mengelola staf, Dokter dapat menulis semua bagian rekam medis, Paramedis sama seperti Resepsionis ditambah bisa mengisi Hasil Lab, Groomer sama seperti Resepsionis ditambah bisa mengisi Log Perawatan, Resepsionis hanya dapat melihat rekam medis dan mengelola jadwal/pasien/keuangan. Login memakai email &amp; password.
+            Peran menentukan hak akses: Admin mengelola staf, Dokter dapat menulis semua bagian rekam medis, Paramedis sama seperti Resepsionis ditambah bisa mengisi Hasil Lab, Resepsionis hanya dapat melihat rekam medis dan mengelola jadwal/pasien/keuangan. Login memakai email &amp; password.
           </div>
-          <StaffManager />
+          <StaffManager canWrite={!isDemo} />
         </div>
       )}
 
-      {tab === "backup" && <BackupManager />}
+      {tab === "backup" && <BackupManager isDemo={isDemo} />}
     </div>
   );
 }

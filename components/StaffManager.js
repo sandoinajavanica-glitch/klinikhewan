@@ -3,7 +3,7 @@
 import ResourceCrud from "./ResourceCrud";
 import { STAFF_ROLES } from "@/lib/constants";
 
-export default function StaffManager() {
+export default function StaffManager({ canWrite = true }) {
   const fields = [
     { name: "name", label: "Nama", required: true },
     { name: "role", label: "Peran", type: "select", options: STAFF_ROLES.map((r) => ({ value: r, label: r })), default: STAFF_ROLES[2] },
@@ -23,6 +23,7 @@ export default function StaffManager() {
       title="Staf"
       fields={fields}
       columns={columns}
+      canWrite={canWrite}
       emptyText="Belum ada staf terdaftar."
     />
   );

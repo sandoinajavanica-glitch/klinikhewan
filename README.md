@@ -98,6 +98,19 @@ saat deploy ulang).
 
 ---
 
+## 4b. Kirim nota lewat WhatsApp
+
+Menu **Keuangan** bisa mengirim nota/invoice ke pemilik hewan lewat WhatsApp
+(link `wa.me`, langsung aktif tanpa setup apa pun — tidak butuh API
+berbayar). Klik tombol kirim WA pada baris transaksi, lalu WhatsApp Web/App
+akan terbuka dengan pesan + link PDF nota sudah terisi otomatis, tinggal
+ditekan kirim.
+
+Pastikan data **Pemilik** sudah diisi nomor teleponnya di menu Pemilik, agar
+tombol ini bisa langsung membuka percakapan ke nomor yang benar.
+
+---
+
 ## 5. Deploy ke Vercel
 
 1. Daftar/masuk ke https://vercel.com, hubungkan akun GitHub Anda.
@@ -118,18 +131,37 @@ Setiap kali Anda `git push` ke branch `main`, Vercel otomatis deploy ulang.
 
 ## Login staf
 
-Login memakai pilih nama staf + PIN (bukan username/password) karena aplikasi
-ini untuk internal klinik:
+Login memakai email + password. Akun awal (dibuat lewat `schema.sql`):
 
-| Nama              | Peran        | PIN default |
-|-------------------|--------------|-------------|
-| ismundiono        | Admin        | 0000        |
-| drg. Ani          | Dokter       | 1111        |
-| drg. Budi         | Dokter       | 2222        |
-| Resepsionis Klinik| Resepsionis  | 3333        |
+| Nama              | Peran        | Email                          | Password default |
+|-------------------|--------------|---------------------------------|-------------------|
+| ismundiono        | Admin        | admin@draftklinik.local         | admin123          |
+| drg. Ani          | Dokter       | ani@draftklinik.local           | dokter123         |
+| drg. Budi         | Dokter       | budi@draftklinik.local          | dokter123         |
+| Resepsionis Klinik| Resepsionis  | resepsionis@draftklinik.local   | resepsionis123    |
 
-**Ubah PIN ini sebelum dipakai sungguhan**, lewat menu Pengaturan (khusus
-Admin) setelah login.
+**Ganti password ini sebelum dipakai sungguhan**, lewat menu Pengaturan
+(khusus Admin) setelah login.
+
+## Mode Demo
+
+Untuk membagikan aplikasi ini sebagai demo publik tanpa risiko datanya
+diubah-ubah, aktifkan mode demo:
+
+1. Set `NEXT_PUBLIC_DEMO_MODE=true`, `NEXT_PUBLIC_DEMO_EMAIL`, dan
+   `NEXT_PUBLIC_DEMO_PASSWORD` di Environment Variables (lihat
+   `.env.example`).
+2. Pastikan ada akun staf dengan email & password yang **sama persis**
+   dengan dua nilai di atas (baris `demo1` di `schema.sql` sudah menyediakan
+   contohnya: `demo@lareangon.local` / `demo123`).
+3. Saat aktif, halaman login menampilkan tombol **"Isi Email & Password
+   Demo"** yang otomatis mengisi form login.
+4. Staf yang login memakai email demo tersebut otomatis ditandai sebagai
+   akun demo: mereka tetap bisa memakai seluruh fitur operasional klinik
+   seperti biasa, tapi **tidak bisa mengubah apa pun di halaman Pengaturan**
+   (tambah/edit/hapus staf, maupun impor/restore backup). Batasan ini
+   diterapkan di server (API), jadi tidak bisa dilewati lewat panggilan API
+   langsung — bukan cuma disembunyikan di tampilan.
 
 ## Hak akses per peran
 

@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import ResourceCrud from "@/components/ResourceCrud";
-import { Card, Badge } from "@/components/ui";
+import { useCallback, useEffect, useState } from "react";
+import FinanceManager from "@/components/FinanceManager";
+import { Card } from "@/components/ui";
 import { apiGet } from "@/lib/apiClient";
-import { fmtRp, fmtDate, todayStr } from "@/lib/constants";
-
-const TYPE_COLOR = { Masuk: "#10b981", Keluar: "#ef4444", Piutang: "#f59e0b" };
+import { fmtRp, todayStr } from "@/lib/constants";
 
 export default function KeuanganPage() {
   const [patients, setPatients] = useState([]);
+  const [owners, setOwners] = useState([]);
+  const [staff, setStaff] = useState([]);
   const [finance, setFinance] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
-  async function loadSummary() {
-    const [p, f] = await Promise.all([apiGet("patients"), apiGet("finance")]);
-    setPatients(p); setFinance(f); setLoaded(true);
-  }
-  useEffect(() => { loadSummary(); }, []);
+  const loadSummary = useCallback(async () => {
+    const [p, o, s, f] = await Promise.all([apiGet("patients"), apiGet("owners"), apiGet("staff"), apiGet("finance")]);
+    setPatients(p); setOwners(o); setStaff(s); setFinance(f); setLoaded(true);
+  }, []);
+
+  useEffect(() => { loadSummary(); }, [loadSummary]);
 
   if (!loaded) return <div className="empty-state">Memuat data...</div>;
 
@@ -31,31 +32,6 @@ export default function KeuanganPage() {
   const keluarBulanan = sumBy("Keluar", (f) => (f.date || "").slice(0, 7) === monthPrefix);
   const totalPiutang = sumBy("Piutang", () => true);
   const saldoBulanan = masukBulanan - keluarBulanan;
-
-  const patientOptions = [{ value: "", label: "- Umum (tanpa pasien) -" }, ...patients.map((p) => ({ value: p.id, label: p.name }))];
-
-  const fields = [
-    { name: "date", label: "Tanggal", type: "date", default: today, required: true },
-    { name: "patientId", label: "Pasien", type: "select", options: patientOptions },
-    { name: "description", label: "Deskripsi", placeholder: "mis. Jasa dokter, obat, tindakan, atau belanja stok", required: true },
-    { name: "amount", label: "Jumlah (Rp)", type: "number", required: true },
-    {
-      name: "type", label: "Tipe", type: "select", default: "Masuk",
-      options: [
-        { value: "Masuk", label: "Masuk (pemasukan)" },
-        { value: "Keluar", label: "Keluar (pengeluaran / belanja)" },
-        { value: "Piutang", label: "Piutang" },
-      ],
-    },
-  ];
-
-  const columns = [
-    { key: "date", label: "Tanggal", render: (r) => fmtDate(r.date) },
-    { key: "patient", label: "Pasien", render: (r) => patients.find((p) => p.id === r.patientId)?.name || "Umum" },
-    { key: "description", label: "Deskripsi" },
-    { key: "type", label: "Tipe", render: (r) => <Badge color={TYPE_COLOR[r.type] || "#6b7280"}>{r.type}</Badge> },
-    { key: "amount", label: "Jumlah", render: (r) => fmtRp(r.amount) },
-  ];
 
   return (
     <div>
@@ -85,14 +61,7 @@ export default function KeuanganPage() {
           <div className="stat-value" style={{ color: "#f59e0b" }}>{fmtRp(totalPiutang)}</div>
         </Card>
       </div>
-      <ResourceCrud
-        resource="finance"
-        title="Transaksi"
-        fields={fields}
-        columns={columns}
-        emptyText="Belum ada transaksi."
-        onBeforeSave={(f) => ({ ...f, amount: Number(f.amount) || 0 })}
-      />
+      <FinanceManager patients={patients} owners={owners} staff={staff} onChanged={loadSummary} />
     </div>
   );
 }

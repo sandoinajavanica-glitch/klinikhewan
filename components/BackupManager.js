@@ -1,21 +1,19 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, Upload, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { Card, PrimaryBtn, GhostBtn } from "./ui";
+import { Download, Upload } from "lucide-react";
+import { Card, PrimaryBtn } from "./ui";
+import { useToast } from "./Toast";
 
-export default function BackupManager() {
+export default function BackupManager({ isDemo = false }) {
+  const toast = useToast();
   const fileRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
   async function handleExport() {
     setExporting(true);
-    setError("");
-    setSuccess("");
     try {
       const res = await fetch("/api/backup/export");
       if (!res.ok) {
@@ -35,9 +33,9 @@ export default function BackupManager() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setSuccess("Backup berhasil diunduh.");
+      toast.success("Backup berhasil diunduh.");
     } catch (e) {
-      setError(e.message);
+      toast.error(e.message);
     } finally {
       setExporting(false);
     }
@@ -45,31 +43,27 @@ export default function BackupManager() {
 
   function handleFileChange(e) {
     setSelectedFile(e.target.files?.[0] || null);
-    setError("");
-    setSuccess("");
   }
 
   async function handleImport() {
-    if (!selectedFile) return;
+    if (!selectedFile || isDemo) return;
     const confirmed = window.confirm(
       "PERINGATAN: Ini akan MENGHAPUS SEMUA data klinik saat ini (pasien, pemilik, rekam medis, keuangan, dll) dan menggantikannya dengan isi file backup ini. Tindakan ini tidak bisa dibatalkan.\n\nLanjutkan?"
     );
     if (!confirmed) return;
 
     setImporting(true);
-    setError("");
-    setSuccess("");
     try {
       const form = new FormData();
       form.append("file", selectedFile);
       const res = await fetch("/api/backup/import", { method: "POST", body: form });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Gagal memulihkan backup");
-      setSuccess("Data berhasil dipulihkan dari backup. Muat ulang halaman untuk melihat data terbaru.");
+      toast.success("Data berhasil dipulihkan dari backup. Muat ulang halaman untuk melihat data terbaru.", { duration: 8000 });
       setSelectedFile(null);
       if (fileRef.current) fileRef.current.value = "";
     } catch (e) {
-      setError(e.message);
+      toast.error(e.message);
     } finally {
       setImporting(false);
     }
@@ -77,13 +71,6 @@ export default function BackupManager() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 620 }}>
-      {error && <div className="alert-error"><AlertTriangle size={14} /> {error}</div>}
-      {success && (
-        <div style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0", borderRadius: 8, padding: "8px 12px", fontSize: 12.5, display: "flex", alignItems: "center", gap: 6 }}>
-          <CheckCircle2 size={14} /> {success}
-        </div>
-      )}
-
       <Card style={{ padding: 18 }}>
         <div style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 6 }}>Ekspor Backup</div>
         <div style={{ fontSize: 12.5, color: "#6b7280", marginBottom: 14 }}>
@@ -105,12 +92,16 @@ export default function BackupManager() {
           digantikan</strong> dengan isi file ini — pastikan file yang dipilih
           benar sebelum melanjutkan.
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <input ref={fileRef} type="file" accept=".sql" onChange={handleFileChange} />
-          <PrimaryBtn onClick={handleImport} disabled={!selectedFile || importing} style={{ background: "#b91c1c" }}>
-            <Upload size={15} /> {importing ? "Memulihkan..." : "Import & Timpa Data"}
-          </PrimaryBtn>
-        </div>
+        {isDemo ? (
+          <div style={{ fontSize: 12.5, color: "#b91c1c" }}>Akun demo tidak dapat mengimpor/memulihkan backup.</div>
+        ) : (
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <input ref={fileRef} type="file" accept=".sql" onChange={handleFileChange} />
+            <PrimaryBtn onClick={handleImport} disabled={!selectedFile || importing} style={{ background: "#b91c1c" }}>
+              <Upload size={15} /> {importing ? "Memulihkan..." : "Import & Timpa Data"}
+            </PrimaryBtn>
+          </div>
+        )}
       </Card>
     </div>
   );

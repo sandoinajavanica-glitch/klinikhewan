@@ -10,6 +10,9 @@ export async function POST(req) {
   if (!hasRole(session, ["Admin"])) {
     return NextResponse.json({ error: "Hanya Admin yang bisa memulihkan (restore) backup" }, { status: 403 });
   }
+  if (session.isDemo) {
+    return NextResponse.json({ error: "Akun demo tidak dapat mengubah pengaturan." }, { status: 403 });
+  }
 
   const form = await req.formData();
   const file = form.get("file");

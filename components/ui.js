@@ -71,7 +71,7 @@ export function SearchSelect({ options, value, onChange, placeholder }) {
           style={{ paddingLeft: 30 }}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setOpen(true); setQuery(""); }}
           placeholder={placeholder || "Ketik untuk mencari..."}
           autoComplete="off"
         />

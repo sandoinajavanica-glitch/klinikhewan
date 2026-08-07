@@ -7,7 +7,7 @@ import { getSession, hasRole } from "@/lib/auth";
 const WRITE_ROLES = {
   staff: ["Admin"],
   medicalNotes: ["Admin", "Dokter"],
-  careLog: ["Admin", "Dokter", "Groomer"],
+  careLog: ["Admin", "Dokter"],
   inpatientCare: ["Admin", "Dokter"],
   vaccinations: ["Admin", "Dokter"],
   labResults: ["Admin", "Dokter", "Paramedis"],
@@ -46,6 +46,9 @@ export async function POST(req, { params }) {
   const allowedRoles = WRITE_ROLES[resource];
   if (allowedRoles && !hasRole(session, allowedRoles)) {
     return NextResponse.json({ error: "Tidak punya akses untuk menambah data ini" }, { status: 403 });
+  }
+  if (resource === "staff" && session.isDemo) {
+    return NextResponse.json({ error: "Akun demo tidak dapat mengubah pengaturan." }, { status: 403 });
   }
   const body = await req.json();
 

@@ -6,7 +6,7 @@ import { getSession, hasRole } from "@/lib/auth";
 const WRITE_ROLES = {
   staff: ["Admin"],
   medicalNotes: ["Admin", "Dokter"],
-  careLog: ["Admin", "Dokter", "Groomer"],
+  careLog: ["Admin", "Dokter"],
   inpatientCare: ["Admin", "Dokter"],
   vaccinations: ["Admin", "Dokter"],
   labResults: ["Admin", "Dokter", "Paramedis"],
@@ -30,6 +30,9 @@ export async function PUT(req, { params }) {
   const allowedRoles = WRITE_ROLES[resource];
   if (allowedRoles && !hasRole(session, allowedRoles)) {
     return NextResponse.json({ error: "Tidak punya akses untuk mengubah data ini" }, { status: 403 });
+  }
+  if (resource === "staff" && session.isDemo) {
+    return NextResponse.json({ error: "Akun demo tidak dapat mengubah pengaturan." }, { status: 403 });
   }
   const body = await req.json();
 
@@ -75,6 +78,9 @@ export async function DELETE(req, { params }) {
   if (allowedRoles && !hasRole(session, allowedRoles)) {
     return NextResponse.json({ error: "Tidak punya akses untuk menghapus data ini" }, { status: 403 });
   }
+  if (resource === "staff" && session.isDemo) {
+    return NextResponse.json({ error: "Akun demo tidak dapat mengubah pengaturan." }, { status: 403 });
+  }
 
   if (resource === "owners") {
     const patients = await getAll("patients");
@@ -90,7 +96,14 @@ export async function DELETE(req, { params }) {
     if (resource === "patients") {
       for (const dep of PATIENT_DEPENDENT_RESOURCES) {
         const items = await getAll(dep);
-        const toDelete = items.filter((it) => it.patientId === id);
+        const toDelete = items.filter((it) => {
+          if (it.patientId === id) return true;
+          if (dep === "finance") {
+            if (Array.isArray(it.patientIds) && it.patientIds.includes(id)) return true;
+            if (Array.isArray(it.items) && it.items.some((row) => row.patientId === id)) return true;
+          }
+          return false;
+        });
         for (const it of toDelete) {
           await deleteItem(dep, it.id);
         }

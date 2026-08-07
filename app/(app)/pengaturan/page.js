@@ -6,5 +6,5 @@ export default async function PengaturanPage() {
   if (session.role !== "Admin") {
     return <div className="empty-state">Hanya Admin yang dapat mengakses halaman Pengaturan.</div>;
   }
-  return <PengaturanTabs />;
+  return <PengaturanTabs isDemo={!!session.isDemo} />;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Card, Table, Modal, Field, TextInput, Select, TextArea, PrimaryBtn, GhostBtn, IconBtn } from "./ui";
+import { useToast } from "./Toast";
 import { apiGet, apiCreate, apiUpdate, apiDelete } from "@/lib/apiClient";
 import { fmtDate, todayStr } from "@/lib/constants";
 
@@ -11,10 +12,10 @@ import { fmtDate, todayStr } from "@/lib/constants";
  * Tanggal pelaksanaan selalu wajib diisi (field pertama, key "date").
  */
 export default function MedicalRecordSection({ resource, patientId, fields, columns, canWrite, addLabel, emptyText }) {
+  const toast = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
-  const [error, setError] = useState("");
 
   async function load() {
     setLoading(true);
@@ -22,7 +23,7 @@ export default function MedicalRecordSection({ resource, patientId, fields, colu
       const all = await apiGet(resource);
       setItems(all.filter((x) => x.patientId === patientId));
     } catch (e) {
-      setError(e.message);
+      toast.error(e.message);
     } finally {
       setLoading(false);
     }
@@ -37,22 +38,32 @@ export default function MedicalRecordSection({ resource, patientId, fields, colu
   function openEdit(item) { setModal({ mode: "edit", item: { ...item } }); }
 
   async function save(form) {
-    setError("");
     try {
       const payload = { ...form, patientId };
-      if (modal.mode === "edit") await apiUpdate(resource, modal.item.id, payload);
-      else await apiCreate(resource, payload);
+      if (modal.mode === "edit") {
+        await apiUpdate(resource, modal.item.id, payload);
+        toast.success(`${addLabel} berhasil diperbarui.`);
+      } else {
+        await apiCreate(resource, payload);
+        toast.success(`${addLabel} berhasil ditambahkan.`);
+      }
       setModal(null);
       load();
     } catch (e) {
-      setError(e.message);
+      toast.error(e.message);
+      throw e;
     }
   }
 
   async function remove(id) {
     if (!window.confirm("Yakin ingin menghapus catatan ini? Tindakan ini tidak bisa dibatalkan.")) return;
-    setError("");
-    try { await apiDelete(resource, id); load(); } catch (e) { setError(e.message); }
+    try {
+      await apiDelete(resource, id);
+      toast.success("Catatan berhasil dihapus.");
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    }
   }
 
   const fullColumns = canWrite
@@ -70,7 +81,6 @@ export default function MedicalRecordSection({ resource, patientId, fields, colu
 
   return (
     <div>
-      {error && <div className="alert-error"><AlertTriangle size={14} /> {error}</div>}
       {canWrite && (
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
           <PrimaryBtn onClick={openAdd}><Plus size={15} /> {addLabel}</PrimaryBtn>
@@ -96,16 +106,24 @@ export default function MedicalRecordSection({ resource, patientId, fields, colu
 function FormModal({ title, fields, initial, onClose, onSave }) {
   const [form, setForm] = useState(initial);
   const [localError, setLocalError] = useState("");
+  const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  function submit() {
+  async function submit() {
     const missing = fields.filter((f) => f.required && !String(form[f.name] || "").trim());
     if (missing.length) {
       setLocalError(`Wajib diisi: ${missing.map((f) => f.label).join(", ")}`);
       return;
     }
     setLocalError("");
-    onSave(form);
+    setSaving(true);
+    try {
+      await onSave(form);
+    } catch (e) {
+      // Error sudah ditampilkan lewat toast di pemanggil; modal tetap terbuka.
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -121,15 +139,15 @@ function FormModal({ title, fields, initial, onClose, onSave }) {
           {f.type === "textarea" && (
             <TextArea value={form[f.name] ?? ""} onChange={(e) => set(f.name, e.target.value)} placeholder={f.placeholder} />
           )}
-          {(!f.type || f.type === "text" || f.type === "date" || f.type === "time") && (
-            <TextInput type={["date", "time"].includes(f.type) ? f.type : "text"} value={form[f.name] ?? ""} onChange={(e) => set(f.name, e.target.value)} placeholder={f.placeholder} />
+          {(!f.type || ["text", "date", "time", "number"].includes(f.type)) && (
+            <TextInput type={["date", "time", "number"].includes(f.type) ? f.type : "text"} step={f.type === "number" ? "any" : undefined} value={form[f.name] ?? ""} onChange={(e) => set(f.name, e.target.value)} placeholder={f.placeholder} />
           )}
         </Field>
       ))}
-      {localError && <div className="alert-error">{localError}</div>}
+      {localError && <div className="alert-error"><AlertTriangle size={14} /> {localError}</div>}
       <div className="modal-actions">
         <GhostBtn onClick={onClose}>Batal</GhostBtn>
-        <PrimaryBtn onClick={submit}>Simpan</PrimaryBtn>
+        <PrimaryBtn onClick={submit} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</PrimaryBtn>
       </div>
     </Modal>
   );

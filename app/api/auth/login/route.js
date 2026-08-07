@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getAll, updateItem } from "@/lib/db";
-import { encodeSession, SESSION_COOKIE } from "@/lib/auth";
+import { encodeSession, SESSION_COOKIE, isDemoModeEnabled, isDemoLoginEmail } from "@/lib/auth";
 
 export async function POST(req) {
   const body = await req.json();
@@ -46,8 +46,10 @@ export async function POST(req) {
     return NextResponse.json({ error: "Email atau password salah." }, { status: 401 });
   }
 
-  const res = NextResponse.json({ id: staff.id, name: staff.name, role: staff.role });
-  res.cookies.set(SESSION_COOKIE, encodeSession(staff), {
+  const isDemo = isDemoModeEnabled() && isDemoLoginEmail(email);
+
+  const res = NextResponse.json({ id: staff.id, name: staff.name, role: staff.role, isDemo });
+  res.cookies.set(SESSION_COOKIE, encodeSession({ ...staff, isDemo }), {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
