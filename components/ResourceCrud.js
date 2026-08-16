@@ -13,7 +13,7 @@ import { ageYearsToDOB, dobToAgeYears } from "@/lib/constants";
  */
 export default function ResourceCrud({
   resource, title, fields, columns, canWrite = true, emptyText, addLabel,
-  onBeforeSave, extraTop, filterFn, sortBy,
+  onBeforeSave, extraTop, filterFn, sortBy, searchText,
   deleteConfirmMessage = "Yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.",
 }) {
   const toast = useToast();
@@ -86,7 +86,8 @@ export default function ResourceCrud({
   let rows = (filterFn ? items.filter(filterFn) : items).filter((r) => {
     if (!search) return true;
     const s = search.toLowerCase();
-    return JSON.stringify(r).toLowerCase().includes(s);
+    const haystack = JSON.stringify(r) + " " + (searchText ? searchText(r) : "");
+    return haystack.toLowerCase().includes(s);
   });
 
   if (sortBy) {

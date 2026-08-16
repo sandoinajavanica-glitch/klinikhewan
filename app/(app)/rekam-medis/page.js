@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, FileText, Syringe, FlaskConical, Scissors, Download, BedDouble, ClipboardList } from "lucide-react";
 import { Card } from "@/components/ui";
 import { useToast } from "@/components/Toast";
@@ -19,7 +20,16 @@ const TABS = [
 ];
 
 export default function RekamMedisPage() {
+  return (
+    <Suspense fallback={<div className="empty-state">Memuat data...</div>}>
+      <RekamMedisContent />
+    </Suspense>
+  );
+}
+
+function RekamMedisContent() {
   const session = useSession();
+  const searchParams = useSearchParams();
   const toast = useToast();
   const canWrite = session && ["Admin", "Dokter"].includes(session.role);
   const canWriteLab = session && ["Admin", "Dokter", "Paramedis"].includes(session.role);
@@ -65,7 +75,12 @@ export default function RekamMedisPage() {
   useEffect(() => {
     Promise.all([apiGet("patients"), apiGet("owners"), apiGet("staff")]).then(([p, o, s]) => {
       setPatients(p); setOwners(o); setStaff(s); setLoaded(true);
+      const paramId = searchParams.get("patientId");
+      if (paramId && p.some((patient) => patient.id === paramId)) {
+        setSelectedId(paramId);
+      }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!loaded) return <div className="empty-state">Memuat data...</div>;

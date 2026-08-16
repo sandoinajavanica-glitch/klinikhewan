@@ -55,7 +55,7 @@ export default function Shell({ session, children }) {
       <div className={"sidebar" + (mobileOpen ? " open" : "")}>
         <div className="sidebar-logo">
           <span className="mark">
-            <Image src="/logo-mark.png" alt="Lareangon" width={30} height={30} priority />
+            <Image src="/logo-mark.png" alt="Lareangon" width={68} height={68} priority style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
           </span>
           Lareangon
           <button className="btn-icon sidebar-close-btn" onClick={() => setMobileOpen(false)}><X size={18} /></button>

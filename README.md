@@ -185,6 +185,23 @@ baru. Untuk kebutuhan query SQL yang lebih kompleks di kemudian hari, tabel
 ini bisa dipecah per resource dengan kolom asli — struktur kode di `lib/db.js`
 sengaja dipisah rapi supaya mudah diganti.
 
+## Data dummy (contoh) untuk demo/testing
+
+Folder `scripts/` berisi dua file SQL:
+
+- `scripts/dummy-data-seed.sql` — mengisi data contoh (pemilik, pasien dari
+  semua jenis hewan, jadwal, rekam medis, vaksin, tindakan, hasil lab,
+  inventaris, transaksi keuangan). Semua id-nya berawalan `dummy-` dan
+  hanya melakukan INSERT, jadi aman dijalankan kapan pun tanpa menghapus
+  data asli klinik yang sudah ada.
+- `scripts/dummy-data-cleanup.sql` — menghapus semua data dummy tersebut
+  (`DELETE FROM items WHERE id LIKE 'dummy-%'`), tanpa menyentuh data asli.
+
+Cara pakai: buka SQL Editor Neon/Supabase (tempat yang sama saat menjalankan
+`schema.sql`), tempel isi salah satu file di atas, lalu jalankan (Run).
+Kalau mau isi ulang data dummy yang baru, jalankan dulu file cleanup,
+baru jalankan lagi file seed.
+
 ## Struktur folder singkat
 
 ```
@@ -200,4 +217,5 @@ app/
 lib/        db.js (Neon), auth.js (sesi), apiClient.js (fetch client), constants.js
 components/ komponen UI & CRUD generik yang dipakai berulang di banyak halaman
 schema.sql  jalankan sekali di Neon SQL Editor untuk membuat tabel & staf awal
+scripts/    dummy-data-seed.sql & dummy-data-cleanup.sql — lihat bagian di atas
 ```
