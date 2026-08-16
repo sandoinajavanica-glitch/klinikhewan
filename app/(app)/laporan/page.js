@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui";
+import { Card, Table } from "@/components/ui";
 import { apiGet } from "@/lib/apiClient";
 import { fmtRp } from "@/lib/constants";
 
@@ -46,6 +46,18 @@ export default function LaporanPage() {
   medicalNotes.forEach((r) => { if (r.diagnosis) diagnosisFreq[r.diagnosis] = (diagnosisFreq[r.diagnosis] || 0) + 1; });
   const topDiagnosis = Object.entries(diagnosisFreq).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
+  const monthlyColumns = [
+    { key: "month", label: "Bulan" },
+    { key: "masuk", label: "Masuk", render: (r) => <span style={{ color: "#059669" }}>{fmtRp(r.masuk)}</span> },
+    { key: "keluar", label: "Keluar", render: (r) => <span style={{ color: "#ef4444" }}>{fmtRp(r.keluar)}</span> },
+    { key: "saldo", label: "Saldo", render: (r) => <span style={{ color: r.saldo >= 0 ? "#059669" : "#ef4444", fontWeight: 600 }}>{fmtRp(r.saldo)}</span> },
+  ];
+  const monthlyRows = allMonths.map((m) => {
+    const masuk = revenueByMonth[m] || 0;
+    const keluar = expenseByMonth[m] || 0;
+    return { id: m, month: m, masuk, keluar, saldo: masuk - keluar };
+  });
+
   return (
     <div className="grid grid-2col">
       <Card style={{ padding: 18 }}>
@@ -81,35 +93,7 @@ export default function LaporanPage() {
 
       <Card style={{ padding: 18 }}>
         <div style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 12 }}>Keuangan per Bulan</div>
-        {allMonths.length === 0 ? <div className="empty-state">Belum ada data.</div> : (
-          <div style={{ overflowX: "auto" }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Bulan</th>
-                  <th>Masuk</th>
-                  <th>Keluar</th>
-                  <th>Saldo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allMonths.map((m) => {
-                  const masuk = revenueByMonth[m] || 0;
-                  const keluar = expenseByMonth[m] || 0;
-                  const saldo = masuk - keluar;
-                  return (
-                    <tr key={m}>
-                      <td>{m}</td>
-                      <td style={{ color: "#059669" }}>{fmtRp(masuk)}</td>
-                      <td style={{ color: "#ef4444" }}>{fmtRp(keluar)}</td>
-                      <td style={{ color: saldo >= 0 ? "#059669" : "#ef4444", fontWeight: 600 }}>{fmtRp(saldo)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <Table columns={monthlyColumns} rows={monthlyRows} empty="Belum ada data." />
       </Card>
 
       <Card style={{ padding: 18 }}>

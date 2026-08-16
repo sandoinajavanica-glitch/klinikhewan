@@ -129,6 +129,8 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 table.data-table thead tr { border-bottom: 1px solid var(--border); }
 table.data-table th { text-align: left; padding: 10px 14px; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
 table.data-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; }
+.table-scroll { overflow-x: auto; }
+.data-cards { display: none; }
 .empty-state { padding: 40px 0; text-align: center; color: var(--muted2); font-size: 13.5px; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
@@ -382,7 +384,12 @@ table.data-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; }
     z-index: 45;
   }
 
-  .topbar { padding: 14px 16px; }
+  .topbar {
+    padding: 14px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
   .topbar h2 { font-size: 16px; }
   .content { padding: 16px; }
 
@@ -391,6 +398,31 @@ table.data-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; }
 
   table.data-table { font-size: 12.5px; }
   table.data-table th, table.data-table td { padding: 8px 10px; }
+
+  .table-scroll { display: none; }
+  .data-cards { display: flex; flex-direction: column; gap: 10px; }
+  .data-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: #fff; }
+  .data-card-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .data-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 5px 0;
+    border-top: 1px solid #f3f4f6;
+    font-size: 13px;
+  }
+  .data-card-row:first-of-type { border-top: none; }
+  .data-card-label { color: var(--muted); flex-shrink: 0; }
+  .data-card-value { text-align: right; color: var(--text); word-break: break-word; }
+  .data-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f3f4f6;
+  }
 
   .login-card { padding: 28px 22px 24px; }
 }

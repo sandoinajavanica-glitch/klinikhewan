@@ -119,20 +119,55 @@ export function Table({ columns, rows, empty }) {
   if (!rows || !rows.length) {
     return <div className="empty-state">{empty || "Belum ada data."}</div>;
   }
+
+  const dataCols = columns.filter((c) => c.label);
+  const actionCols = columns.filter((c) => !c.label);
+  const [titleCol, ...restCols] = dataCols;
+
   return (
-    <div style={{ overflowX: "auto" }}>
-      <table className="data-table">
-        <thead>
-          <tr>{columns.map((c) => <th key={c.key}>{c.label}</th>)}</tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={row.id || i}>
-              {columns.map((c) => <td key={c.key}>{c.render ? c.render(row) : row[c.key]}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="table-scroll">
+        <table className="data-table">
+          <thead>
+            <tr>{columns.map((c) => <th key={c.key}>{c.label}</th>)}</tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={row.id || i}>
+                {columns.map((c) => <td key={c.key}>{c.render ? c.render(row) : row[c.key]}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="data-cards">
+        {rows.map((row, i) => (
+          <div className="data-card" key={row.id || i}>
+            {titleCol && (
+              <div className="data-card-title">
+                {titleCol.render ? titleCol.render(row) : row[titleCol.key]}
+              </div>
+            )}
+            {restCols.map((c) => {
+              const val = c.render ? c.render(row) : row[c.key];
+              return (
+                <div className="data-card-row" key={c.key}>
+                  <span className="data-card-label">{c.label}</span>
+                  <span className="data-card-value">{val === "" || val == null ? "-" : val}</span>
+                </div>
+              );
+            })}
+            {actionCols.length > 0 && (
+              <div className="data-card-actions">
+                {actionCols.map((c) => (
+                  <span key={c.key}>{c.render ? c.render(row) : row[c.key]}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
