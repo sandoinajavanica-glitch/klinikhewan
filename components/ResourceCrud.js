@@ -13,7 +13,7 @@ import { ageYearsToDOB, dobToAgeYears } from "@/lib/constants";
  */
 export default function ResourceCrud({
   resource, title, fields, columns, canWrite = true, emptyText, addLabel,
-  onBeforeSave, extraTop, filterFn, sortBy, searchText,
+  onBeforeSave, extraTop, filterFn, sortBy, searchText, extraRowActions,
   deleteConfirmMessage = "Yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.",
 }) {
   const toast = useToast();
@@ -72,16 +72,20 @@ export default function ResourceCrud({
     }
   }
 
-  const fullColumns = canWrite
-    ? [...columns, {
-        key: "__actions", label: "", render: (r) => (
-          <div style={{ display: "flex", gap: 2 }}>
-            <IconBtn onClick={() => openEdit(r)}><Pencil size={15} /></IconBtn>
-            <IconBtn danger onClick={() => remove(r.id)}><Trash2 size={15} /></IconBtn>
-          </div>
-        ),
-      }]
-    : columns;
+  let fullColumns = columns;
+  if (extraRowActions) {
+    fullColumns = [...fullColumns, { key: "__extra", label: "", render: (r) => extraRowActions(r, load) }];
+  }
+  if (canWrite) {
+    fullColumns = [...fullColumns, {
+      key: "__actions", label: "", render: (r) => (
+        <div style={{ display: "flex", gap: 2 }}>
+          <IconBtn onClick={() => openEdit(r)}><Pencil size={15} /></IconBtn>
+          <IconBtn danger onClick={() => remove(r.id)}><Trash2 size={15} /></IconBtn>
+        </div>
+      ),
+    }];
+  }
 
   let rows = (filterFn ? items.filter(filterFn) : items).filter((r) => {
     if (!search) return true;

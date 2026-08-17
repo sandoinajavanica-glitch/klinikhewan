@@ -13,6 +13,7 @@ const TYPE_COLOR = { Masuk: "#10b981", Keluar: "#ef4444", Piutang: "#f59e0b" };
 export default function FinanceManager({ patients, owners, staff, onChanged }) {
   const toast = useToast();
   const [items, setItems] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null); // {mode:'add'|'edit', item}
   const [search, setSearch] = useState("");
@@ -20,8 +21,9 @@ export default function FinanceManager({ patients, owners, staff, onChanged }) {
   async function load() {
     setLoading(true);
     try {
-      const data = await apiGet("finance");
+      const [data, inv] = await Promise.all([apiGet("finance"), apiGet("inventory")]);
       setItems(data);
+      setInventory(inv);
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -151,6 +153,7 @@ export default function FinanceManager({ patients, owners, staff, onChanged }) {
           owners={owners}
           patients={patients}
           staff={staff}
+          inventory={inventory}
           onClose={() => setModal(null)}
           onSave={save}
         />

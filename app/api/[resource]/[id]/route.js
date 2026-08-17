@@ -1,7 +1,42 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getAll, updateItem, deleteItem, COLLECTIONS } from "@/lib/db";
+import { getAll, getOne, updateItem, deleteItem, COLLECTIONS } from "@/lib/db";
 import { getSession, hasRole } from "@/lib/auth";
+import { adjustStockMany, buildStockDeltaMap, procedureInventoryRows, financeInventoryRows } from "@/lib/inventoryStock";
+
+// Item resource yang pemakaian stoknya perlu disesuaikan ulang saat diedit:
+// stok lama dikembalikan dulu, lalu stok versi baru dikurangi. Kalau
+// record dihapus, stok yang pernah dipakai dikembalikan semua.
+async function stockRowsFor(resource, item) {
+  if (resource === "procedures") return procedureInventoryRows(item);
+  if (resource === "finance") return financeInventoryRows(item);
+  return [];
+}
+
+async function applyStockOnUpdate(resource, before, after) {
+  try {
+    const oldRows = await stockRowsFor(resource, before);
+    const newRows = await stockRowsFor(resource, after);
+    if (!oldRows.length && !newRows.length) return;
+    const restore = buildStockDeltaMap(oldRows, 1);
+    const apply = buildStockDeltaMap(newRows, -1);
+    const combined = { ...restore };
+    for (const [id, delta] of Object.entries(apply)) combined[id] = (combined[id] || 0) + delta;
+    await adjustStockMany(combined);
+  } catch (e) {
+    console.error("Gagal menyesuaikan stok inventaris saat edit:", e);
+  }
+}
+
+async function applyStockOnDelete(resource, item) {
+  try {
+    const rows = await stockRowsFor(resource, item);
+    if (!rows.length) return;
+    await adjustStockMany(buildStockDeltaMap(rows, 1));
+  } catch (e) {
+    console.error("Gagal mengembalikan stok inventaris saat hapus:", e);
+  }
+}
 
 const WRITE_ROLES = {
   staff: ["Admin"],
@@ -55,8 +90,10 @@ export async function PUT(req, { params }) {
   }
 
   try {
+    const before = await getOne(resource, id);
     const updated = await updateItem(resource, id, body);
     if (!updated) return NextResponse.json({ error: "Data tidak ditemukan" }, { status: 404 });
+    if (before) await applyStockOnUpdate(resource, before, updated);
     return NextResponse.json(resource === "staff" ? sanitizeStaff(updated) : updated);
   } catch (e) {
     return NextResponse.json({ error: e.message || "Gagal mengubah data di database" }, { status: 500 });
@@ -105,10 +142,13 @@ export async function DELETE(req, { params }) {
           return false;
         });
         for (const it of toDelete) {
+          await applyStockOnDelete(dep, it);
           await deleteItem(dep, it.id);
         }
       }
     }
+    const existing = await getOne(resource, id);
+    if (existing) await applyStockOnDelete(resource, existing);
     await deleteItem(resource, id);
     return NextResponse.json({ ok: true });
   } catch (e) {

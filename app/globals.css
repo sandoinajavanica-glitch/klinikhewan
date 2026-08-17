@@ -147,10 +147,10 @@ table.data-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; }
 .finance-items { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; overflow-x: auto; }
 .finance-items-head, .finance-items-row {
   display: grid;
-  grid-template-columns: 1fr 1.6fr 60px 110px 110px 30px;
+  grid-template-columns: 1fr 1.3fr 1.3fr 55px 100px 100px 28px;
   gap: 8px;
   align-items: center;
-  min-width: 620px;
+  min-width: 720px;
 }
 .finance-items-head { padding: 8px 10px; background: #f9fafb; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
 .finance-items-row { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; }
@@ -159,6 +159,21 @@ table.data-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; }
 .finance-items-subtotal { font-size: 13px; font-weight: 600; color: var(--text); text-align: right; padding-right: 4px; }
 .finance-total-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px 4px; font-size: 14px; font-weight: 600; }
 .finance-total-row b { font-size: 17px; color: var(--green); }
+
+/* ---- rincian pemakaian obat/alat dari inventaris (Tindakan) ---- */
+.med-items { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; overflow-x: auto; margin-bottom: 4px; }
+.med-items-head, .med-items-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 30px;
+  gap: 8px;
+  align-items: center;
+  min-width: 340px;
+}
+.med-items-head { padding: 8px 10px; background: #f9fafb; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+.med-items-row { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; }
+.med-items-row:last-child { border-bottom: none; }
+.med-items-row .input { padding: 7px 8px; font-size: 13px; }
+.med-items-warn { grid-column: 1 / -1; display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: #b45309; }
 
 /* ---- toast notifications ---- */
 .toast-viewport {

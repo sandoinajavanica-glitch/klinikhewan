@@ -8,7 +8,7 @@ import { fmtRp, todayStr, itemSubtotal, normalizeFinanceItems, financePatientIds
 let rowSeq = 0;
 function newRow(patientId = "") {
   rowSeq += 1;
-  return { id: `row-${Date.now()}-${rowSeq}`, patientId, description: "", qty: 1, price: 0 };
+  return { id: `row-${Date.now()}-${rowSeq}`, patientId, description: "", qty: 1, price: 0, inventoryId: "" };
 }
 
 const TYPE_OPTIONS = [
@@ -21,8 +21,10 @@ const TYPE_OPTIONS = [
  * Form transaksi keuangan / invoice. Mendukung:
  * - satu invoice untuk beberapa pasien dari pemilik yang sama (patientId per baris item)
  * - rincian item + harga yang diisi manual, baris bisa ditambah/dihapus bebas
+ * - item bisa dikaitkan ke inventaris (mis. penjualan obat) lewat inventoryId;
+ *   qty baris tersebut otomatis mengurangi stok item terkait saat disimpan.
  */
-export default function FinanceForm({ mode, initial, owners, patients, staff, onClose, onSave }) {
+export default function FinanceForm({ mode, initial, owners, patients, staff, inventory, onClose, onSave }) {
   const [date, setDate] = useState(initial?.date || todayStr());
   const [type, setType] = useState(initial?.type || "Masuk");
   const [doctor, setDoctor] = useState(initial?.doctor || "");
@@ -39,6 +41,7 @@ export default function FinanceForm({ mode, initial, owners, patients, staff, on
       description: r.description || "",
       qty: r.qty ?? 1,
       price: r.price ?? 0,
+      inventoryId: r.inventoryId || "",
     }));
     return rows.length ? rows : [newRow()];
   });
@@ -55,6 +58,10 @@ export default function FinanceForm({ mode, initial, owners, patients, staff, on
   ];
   const ownerPatients = useMemo(() => patients.filter((p) => p.ownerId === ownerId), [patients, ownerId]);
   const patientOptions = [{ value: "", label: "Umum" }, ...ownerPatients.map((p) => ({ value: p.id, label: p.name }))];
+  const inventoryOptions = [
+    { value: "", label: "- Tidak dikaitkan -" },
+    ...(inventory || []).map((it) => ({ value: it.id, label: `${it.name} (sisa ${it.stock} ${it.unit || ""})` })),
+  ];
 
   function updateRow(id, patch) {
     setItems((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -64,6 +71,14 @@ export default function FinanceForm({ mode, initial, owners, patients, staff, on
   }
   function removeRow(id) {
     setItems((rows) => (rows.length > 1 ? rows.filter((r) => r.id !== id) : rows));
+  }
+  function pickInventory(id, inventoryId) {
+    const invItem = (inventory || []).find((it) => it.id === inventoryId);
+    setItems((rows) => rows.map((r) => {
+      if (r.id !== id) return r;
+      const description = r.description ? r.description : (invItem?.name || "");
+      return { ...r, inventoryId, description };
+    }));
   }
 
   const total = items.reduce((s, r) => s + itemSubtotal(r), 0);
@@ -75,6 +90,7 @@ export default function FinanceForm({ mode, initial, owners, patients, staff, on
         description: String(r.description || "").trim(),
         qty: Number(r.qty) || 0,
         price: Number(r.price) || 0,
+        inventoryId: r.inventoryId || "",
       }))
       .filter((r) => r.description || r.price);
 
@@ -150,29 +166,44 @@ export default function FinanceForm({ mode, initial, owners, patients, staff, on
           <div className="finance-items-head">
             <span>Pasien</span>
             <span>Deskripsi</span>
+            <span>Item Inventaris</span>
             <span>Qty</span>
             <span>Harga (Rp)</span>
             <span>Subtotal</span>
             <span></span>
           </div>
-          {items.map((row) => (
-            <div className="finance-items-row" key={row.id}>
-              <Select value={row.patientId} onChange={(e) => updateRow(row.id, { patientId: e.target.value })}>
-                {patientOptions.map((o) => (
-                  <option key={o.value || "umum"} value={o.value}>{o.label}</option>
-                ))}
-              </Select>
-              <TextInput
-                value={row.description}
-                placeholder="mis. Jasa dokter, obat, vaksinasi"
-                onChange={(e) => updateRow(row.id, { description: e.target.value })}
-              />
-              <TextInput type="number" min="0" step="1" value={row.qty} onChange={(e) => updateRow(row.id, { qty: e.target.value })} />
-              <TextInput type="number" min="0" step="500" value={row.price} onChange={(e) => updateRow(row.id, { price: e.target.value })} />
-              <div className="finance-items-subtotal">{fmtRp(itemSubtotal(row))}</div>
-              <IconBtn danger title="Hapus baris" onClick={() => removeRow(row.id)}><Trash2 size={14} /></IconBtn>
-            </div>
-          ))}
+          {items.map((row) => {
+            const invItem = (inventory || []).find((it) => it.id === row.inventoryId);
+            const overStock = invItem && Number(row.qty) > Number(invItem.stock || 0);
+            return (
+              <div className="finance-items-row" key={row.id}>
+                <Select value={row.patientId} onChange={(e) => updateRow(row.id, { patientId: e.target.value })}>
+                  {patientOptions.map((o) => (
+                    <option key={o.value || "umum"} value={o.value}>{o.label}</option>
+                  ))}
+                </Select>
+                <TextInput
+                  value={row.description}
+                  placeholder="mis. Jasa dokter, obat, vaksinasi"
+                  onChange={(e) => updateRow(row.id, { description: e.target.value })}
+                />
+                <Select value={row.inventoryId} onChange={(e) => pickInventory(row.id, e.target.value)}>
+                  {inventoryOptions.map((o) => (
+                    <option key={o.value || "none"} value={o.value}>{o.label}</option>
+                  ))}
+                </Select>
+                <TextInput type="number" min="0" step="1" value={row.qty} onChange={(e) => updateRow(row.id, { qty: e.target.value })} />
+                <TextInput type="number" min="0" step="500" value={row.price} onChange={(e) => updateRow(row.id, { price: e.target.value })} />
+                <div className="finance-items-subtotal">{fmtRp(itemSubtotal(row))}</div>
+                <IconBtn danger title="Hapus baris" onClick={() => removeRow(row.id)}><Trash2 size={14} /></IconBtn>
+                {overStock && (
+                  <div className="med-items-warn" style={{ gridColumn: "1 / -1" }}>
+                    <AlertTriangle size={12} /> Qty melebihi stok "{invItem.name}" (sisa {invItem.stock} {invItem.unit || ""})
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
         <GhostBtn onClick={addRow} style={{ marginTop: 8 }}><Plus size={14} /> Tambah Item</GhostBtn>
       </Field>

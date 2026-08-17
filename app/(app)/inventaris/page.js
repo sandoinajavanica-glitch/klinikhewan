@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { PackageMinus, AlertTriangle } from "lucide-react";
 import ResourceCrud from "@/components/ResourceCrud";
-import { Badge } from "@/components/ui";
+import { Badge, Modal, Field, TextInput, GhostBtn, PrimaryBtn, IconBtn } from "@/components/ui";
+import { useToast } from "@/components/Toast";
+import { apiUseInventoryStock } from "@/lib/apiClient";
 import { INVENTORY_CATEGORIES, fmtDate } from "@/lib/constants";
 
 export default function InventarisPage() {
@@ -38,6 +42,76 @@ export default function InventarisPage() {
       columns={columns}
       emptyText="Belum ada item inventaris."
       onBeforeSave={(f) => ({ ...f, stock: Number(f.stock) || 0, minStock: Number(f.minStock) || 0 })}
+      extraRowActions={(item, reload) => <UseStockButton item={item} onDone={reload} />}
     />
+  );
+}
+
+// Tombol cepat "Pakai Stok": buka modal kecil untuk mengurangi jumlah stok
+// item langsung, tanpa perlu masuk mode edit penuh.
+function UseStockButton({ item, onDone }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [qty, setQty] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function openModal() {
+    setQty("");
+    setError("");
+    setOpen(true);
+  }
+
+  async function submit() {
+    const n = Number(qty);
+    if (!qty || isNaN(n) || n <= 0) {
+      setError("Masukkan jumlah pemakaian yang valid (lebih dari 0).");
+      return;
+    }
+    if (n > Number(item.stock || 0)) {
+      setError(`Jumlah melebihi stok tersedia (sisa ${item.stock} ${item.unit || ""}).`);
+      return;
+    }
+    setError("");
+    setSaving(true);
+    try {
+      await apiUseInventoryStock(item.id, n);
+      toast.success(`Stok "${item.name}" berkurang ${n} ${item.unit || ""}.`);
+      setOpen(false);
+      onDone?.();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <IconBtn title="Pakai Stok" onClick={openModal}><PackageMinus size={15} /></IconBtn>
+      {open && (
+        <Modal title={`Pakai Stok — ${item.name}`} onClose={() => setOpen(false)}>
+          <div style={{ fontSize: 12.5, color: "#6b7280", marginBottom: 10 }}>
+            Stok saat ini: <strong>{item.stock} {item.unit || ""}</strong>
+          </div>
+          <Field label={`Jumlah dipakai (${item.unit || "unit"})`}>
+            <TextInput
+              type="number"
+              min="0"
+              step="any"
+              autoFocus
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+              placeholder="mis. 2"
+            />
+          </Field>
+          {error && <div className="alert-error"><AlertTriangle size={14} /> {error}</div>}
+          <div className="modal-actions">
+            <GhostBtn onClick={() => setOpen(false)}>Batal</GhostBtn>
+            <PrimaryBtn onClick={submit} disabled={saving}>{saving ? "Menyimpan..." : "Kurangi Stok"}</PrimaryBtn>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }

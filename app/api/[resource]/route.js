@@ -2,6 +2,24 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getAll, createItem, COLLECTIONS } from "@/lib/db";
 import { getSession, hasRole } from "@/lib/auth";
+import { adjustStockMany, buildStockDeltaMap, procedureInventoryRows, financeInventoryRows } from "@/lib/inventoryStock";
+
+// Untuk resource yang bisa memakai stok inventaris (Tindakan lewat
+// medicationItems, Keuangan lewat items yang dikaitkan ke inventoryId),
+// kurangi stok terkait setelah record berhasil dibuat.
+async function applyStockOnCreate(resource, item) {
+  try {
+    if (resource === "procedures") {
+      await adjustStockMany(buildStockDeltaMap(procedureInventoryRows(item), -1));
+    } else if (resource === "finance") {
+      await adjustStockMany(buildStockDeltaMap(financeInventoryRows(item), -1));
+    }
+  } catch (e) {
+    // Kegagalan penyesuaian stok tidak membatalkan pencatatan tindakan/transaksi
+    // yang sudah tersimpan; hanya dicatat di log server.
+    console.error("Gagal menyesuaikan stok inventaris:", e);
+  }
+}
 
 // Peran yang boleh MENAMBAH data per koleksi. Semua peran yang login boleh membaca (GET).
 const WRITE_ROLES = {
@@ -70,6 +88,7 @@ export async function POST(req, { params }) {
 
   try {
     const item = await createItem(resource, body);
+    await applyStockOnCreate(resource, item);
     return NextResponse.json(resource === "staff" ? sanitizeStaff(item) : item);
   } catch (e) {
     return NextResponse.json({ error: e.message || "Gagal menyimpan data ke database" }, { status: 500 });

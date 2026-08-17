@@ -38,6 +38,7 @@ function RekamMedisContent() {
   const [patients, setPatients] = useState([]);
   const [owners, setOwners] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
@@ -73,8 +74,8 @@ function RekamMedisContent() {
   }
 
   useEffect(() => {
-    Promise.all([apiGet("patients"), apiGet("owners"), apiGet("staff")]).then(([p, o, s]) => {
-      setPatients(p); setOwners(o); setStaff(s); setLoaded(true);
+    Promise.all([apiGet("patients"), apiGet("owners"), apiGet("staff"), apiGet("inventory")]).then(([p, o, s, inv]) => {
+      setPatients(p); setOwners(o); setStaff(s); setInventory(inv); setLoaded(true);
       const paramId = searchParams.get("patientId");
       if (paramId && p.some((patient) => patient.id === paramId)) {
         setSelectedId(paramId);
@@ -268,11 +269,13 @@ function RekamMedisContent() {
           canWrite={canWrite}
           addLabel="Tindakan Baru"
           emptyText="Belum ada catatan tindakan."
+          inventory={inventory}
           fields={[
             { name: "date", label: "Tanggal Pelaksanaan", type: "date", required: true },
             { name: "procedureName", label: "Nama Tindakan", required: true },
             { name: "description", label: "Deskripsi", type: "textarea" },
-            { name: "medication", label: "Obat / Anastesi" },
+            { name: "medication", label: "Obat / Anastesi (catatan bebas)" },
+            { name: "medicationItems", label: "Obat / Anastesi dari Inventaris (stok otomatis berkurang)", type: "inventory-items" },
             { name: "notes", label: "Catatan Tambahan", type: "textarea" },
           ]}
           columns={[
@@ -280,6 +283,13 @@ function RekamMedisContent() {
             { key: "procedureName", label: "Nama Tindakan" },
             { key: "description", label: "Deskripsi" },
             { key: "medication", label: "Obat / Anastesi" },
+            {
+              key: "medicationItems", label: "Item Inventaris Dipakai", render: (r) => (
+                Array.isArray(r.medicationItems) && r.medicationItems.length
+                  ? r.medicationItems.map((m) => `${m.name || "-"} (${m.qty} ${m.unit || ""})`).join(", ")
+                  : "-"
+              ),
+            },
             { key: "notes", label: "Catatan Tambahan" },
           ]}
         />
