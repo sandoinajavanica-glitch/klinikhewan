@@ -102,12 +102,16 @@ export default function ResourceCrud({
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, gap: 10, flexWrap: "wrap" }}>
-        <input className="input" style={{ maxWidth: 220 }} placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div style={{ display: "flex", gap: 8 }}>
+      <div className="crud-toolbar">
+        <div className="crud-toolbar-filters">
+          <input className="input crud-search-input" placeholder="Cari..." value={search} onChange={(e) => setSearch(e.target.value)} />
           {extraTop}
-          {canWrite && <PrimaryBtn onClick={openAdd}><Plus size={15} /> {addLabel || `Tambah ${title}`}</PrimaryBtn>}
         </div>
+        {canWrite && (
+          <div className="crud-toolbar-actions">
+            <PrimaryBtn onClick={openAdd}><Plus size={15} /> {addLabel || `Tambah ${title}`}</PrimaryBtn>
+          </div>
+        )}
       </div>
       <Card>
         {loading ? <div className="empty-state">Memuat data...</div> : <Table columns={fullColumns} rows={rows} empty={emptyText} />}
